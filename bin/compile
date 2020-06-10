@@ -1,0 +1,89 @@
+#!/usr/bin/env bash
+# bin/compile <build-dir> <cache-dir> <env-dir>
+
+set -e
+
+function export_env_dir() {
+  env_dir=$1
+  acceptlist_regex=${2:-''}
+  denylist_regex=${3:-'^(PATH|GIT_DIR|CPATH|CPPATH|LD_PRELOAD|LIBRARY_PATH)$'}
+  if [ -d "$env_dir" ]; then
+    for e in $(ls $env_dir); do
+      echo "$e" | grep -E "$acceptlist_regex" | grep -qvE "$denylist_regex" &&
+      export "$e=$(cat $env_dir/$e)"
+      :
+    done
+  fi
+}
+
+function indent() {
+  c='s/^/       /'
+  case $(uname) in
+    Darwin) sed -l "$c";;
+    *)      sed -u "$c";;
+  esac
+}
+
+# config
+
+
+AWS_CLI_URL="https://s3.amazonaws.com/aws-cli/awscli-bundle.zip"
+JQ_VERSION="jq-1.6"
+
+JQ_URL="https://github.com/stedolan/jq/releases/download/$JQ_VERSION/jq-osx-amd64"
+
+BUILD_DIR=$1
+CACHE_DIR=$2
+ENV_DIR=$3
+
+export_env_dir $ENV_DIR
+
+BUILDPACK_DIR="$(dirname $(dirname $0))"
+## TODO: CHANGE BACK TO APP
+INSTALL_DIR="app/.awscli"
+
+echo "-----> Downloading AWS CLI"
+curl --silent --show-error -o /tmp/awscli-bundle.zip "$AWS_CLI_URL" | indent
+unzip -qq -d "$BUILD_DIR/.awscli" /tmp/awscli-bundle.zip | indent
+
+# Since build-dir isn't guaranteed to be /app, move whatever's in /app's awscli
+# dir out of the way. The installer uses virtualenv, which means it must be
+# installed in the final location - we have to install into /app.
+rm -rf /tmp/awscli
+
+# Since $BUILD_DIR can be /app, we can only move $INSTALL_DIR if it's not the same.
+if [ "$INSTALL_DIR" != "$BUILD_DIR/.awscli" ] && [ -e $INSTALL_DIR ]; then
+  mv $INSTALL_DIR /tmp/awscli
+fi
+
+echo "-----> Installing AWS CLI"
+
+"$BUILD_DIR/.awscli/awscli-bundle/install" -i "$INSTALL_DIR" | indent
+
+if [ "$INSTALL_DIR" != "$BUILD_DIR/.awscli" ]; then
+  mv $INSTALL_DIR/* "$BUILD_DIR/.awscli"
+fi
+
+echo "-----> Downloading JQ Binary"
+curl --silent -L -o $BUILD_DIR/jq $JQ_URL
+chmod +x $BUILD_DIR/jq
+
+echo "-----> Fetching Secrets"
+alias jq=$BUILD_DIR/jq
+alias aws="$BUILD_DIR/.awscli/bin/aws"
+
+## Fetch all secrets
+SECRETS=$(aws secretsmanager list-secrets | jq -r ".SecretList[].Name")
+
+## Get individual secrets
+for secret in $SECRETS
+do
+  parsed=$(aws secretsmanager get-secret-value --secret-id "$secret" --query SecretString --output text | jq -r 'to_entries[] | "export \(.key)=\(.value)"') &&
+  echo $parsed >> $BUILD_DIR/.profile.d/heroku-buildpack-aws-secrets.sh &
+done
+
+echo "-----> Cleaning up AWS CLI"
+# Restore the moved awscli dir, if it exists.
+
+rm -r $BUILD_DIR/.awscli
+rm $BUILD_DIR/jq
