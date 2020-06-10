@@ -72,7 +72,7 @@ ls -al $BUILD_DIR/.awscli
 
 ## Fetch all secrets
 SECRETS=$($BUILD_DIR/.awscli/bin/python $BUILD_DIR/.awscli/bin/aws secretsmanager list-secrets | $BUILD_DIR/jq -r ".SecretList[].Name")
-mkdir -p .profile.d
+mkdir -p $BUILD_DIR/.profile.d
 
 ## Get individual secrets
 for secret in $SECRETS
