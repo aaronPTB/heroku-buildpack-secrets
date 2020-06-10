@@ -82,6 +82,6 @@ done
 echo "-----> Cleaning up AWS CLI"
 # Restore the moved awscli dir, if it exists.
 
-rm -r $BUILD_DIR/.awscli
-rm $BUILD_DIR/jq
-rm -rf /tmp/awscli*
+# rm -r $BUILD_DIR/.awscli
+# rm $BUILD_DIR/jq
+# rm -rf /tmp/awscli*
