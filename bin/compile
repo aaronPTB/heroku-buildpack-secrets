@@ -68,6 +68,7 @@ chmod +x $BUILD_DIR/jq
 
 echo "-----> Fetching Secrets"
 
+ls $BUILD_DIR
 ## Fetch all secrets
 SECRETS=$($BUILD_DIR/aws secretsmanager list-secrets | $BUILD_DIR/jq -r ".SecretList[].Name")
 
