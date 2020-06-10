@@ -69,8 +69,9 @@ chmod +x $BUILD_DIR/jq
 echo "-----> Fetching Secrets"
 
 ls -al $BUILD_DIR/.awscli
+
 ## Fetch all secrets
-SECRETS=$($BUILD_DIR/.awscli/bin/aws secretsmanager list-secrets | $BUILD_DIR/jq -r ".SecretList[].Name")
+SECRETS=$($BUILD_DIR/.awscli/bin/python $BUILD_DIR/.awscli/bin/aws secretsmanager list-secrets | $BUILD_DIR/jq -r ".SecretList[].Name")
 
 ## Get individual secrets
 for secret in $SECRETS
