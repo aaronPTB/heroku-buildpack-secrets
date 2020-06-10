@@ -29,7 +29,7 @@ function indent() {
 AWS_CLI_URL="https://s3.amazonaws.com/aws-cli/awscli-bundle.zip"
 JQ_VERSION="jq-1.6"
 
-JQ_URL="https://github.com/stedolan/jq/releases/download/$JQ_VERSION/jq-osx-amd64"
+JQ_URL="https://github.com/stedolan/jq/releases/download/$JQ_VERSION/jq-linux64"
 
 BUILD_DIR=$1
 CACHE_DIR=$2
@@ -56,19 +56,19 @@ fi
 
 "$BUILD_DIR/.awscli/awscli-bundle/install" -i "$INSTALL_DIR" |& indent
 
-echo "-----> Done Installing"
-
 if [ "$INSTALL_DIR" != "$BUILD_DIR/.awscli" ]; then
   mv $INSTALL_DIR/* "$BUILD_DIR/.awscli"
 fi
 
+echo "-----> Done Installing"
 echo "-----> Downloading JQ Binary"
+
 curl --silent -L -o $BUILD_DIR/jq $JQ_URL
 chmod +x $BUILD_DIR/jq
 
 echo "-----> Fetching Secrets"
 
-ls -al $BUILD_DIR
+ls -al $BUILD_DIR/.awscli
 ## Fetch all secrets
 SECRETS=$($BUILD_DIR/.awscli/bin/aws secretsmanager list-secrets | $BUILD_DIR/jq -r ".SecretList[].Name")
 
@@ -84,3 +84,4 @@ echo "-----> Cleaning up AWS CLI"
 
 rm -r $BUILD_DIR/.awscli
 rm $BUILD_DIR/jq
+rm -rf /tmp/awscli*
