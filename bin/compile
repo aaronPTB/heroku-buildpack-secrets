@@ -51,12 +51,14 @@ rm -rf /tmp/awscli
 
 # Since $BUILD_DIR can be /app, we can only move $INSTALL_DIR if it's not the same.
 if [ "$INSTALL_DIR" != "$BUILD_DIR/.awscli" ] && [ -e $INSTALL_DIR ]; then
-  mv $INSTALL_DIR/* /tmp/awscli
+  mv $INSTALL_DIR /tmp/awscli
 fi
 
 echo "-----> Installing AWS CLI"
 
 "$BUILD_DIR/.awscli/awscli-bundle/install" -i "$INSTALL_DIR" | indent
+
+echo "-----> Done Installing"
 
 if [ "$INSTALL_DIR" != "$BUILD_DIR/.awscli" ]; then
   mv $INSTALL_DIR/* "$BUILD_DIR/.awscli"
