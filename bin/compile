@@ -67,20 +67,15 @@ curl --silent -L -o $BUILD_DIR/jq $JQ_URL
 chmod +x $BUILD_DIR/jq
 
 echo "-----> Fetching Secrets"
-alias jq=$BUILD_DIR/jq
-alias aws="$BUILD_DIR/.awscli/bin/aws"
-
-which jq
-which aws
 
 ## Fetch all secrets
-SECRETS=$(aws secretsmanager list-secrets | jq -r ".SecretList[].Name")
+SECRETS=$($BUILD_DIR/aws secretsmanager list-secrets | $BUILD_DIR/jq -r ".SecretList[].Name")
 
 ## Get individual secrets
 for secret in $SECRETS
 do
-  parsed=$(aws secretsmanager get-secret-value --secret-id "$secret" --query SecretString --output text | jq -r 'to_entries[] | "export \(.key)=\(.value)"') &&
-  echo $parsed >> $BUILD_DIR/.profile.d/heroku-buildpack-aws-secrets.sh &
+  parsed=$($BUILD_DIR/aws secretsmanager get-secret-value --secret-id "$secret" --query SecretString --output text | $BUILD_DIR/jq -r 'to_entries[] | "export \(.key)=\(.value)"') &&
+  echo $parsed >> $BUILD_DIR/.profile.d/secrets.sh &
 done
 
 echo "-----> Cleaning up AWS CLI"
