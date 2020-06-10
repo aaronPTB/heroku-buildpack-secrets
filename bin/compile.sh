@@ -26,7 +26,6 @@ function indent() {
 
 # config
 
-
 AWS_CLI_URL="https://s3.amazonaws.com/aws-cli/awscli-bundle.zip"
 JQ_VERSION="jq-1.6"
 
@@ -39,7 +38,6 @@ ENV_DIR=$3
 export_env_dir $ENV_DIR
 
 BUILDPACK_DIR="$(dirname $(dirname $0))"
-## TODO: CHANGE BACK TO APP
 INSTALL_DIR="app/.awscli"
 
 echo "-----> Downloading AWS CLI"
@@ -53,7 +51,7 @@ rm -rf /tmp/awscli
 
 # Since $BUILD_DIR can be /app, we can only move $INSTALL_DIR if it's not the same.
 if [ "$INSTALL_DIR" != "$BUILD_DIR/.awscli" ] && [ -e $INSTALL_DIR ]; then
-  mv $INSTALL_DIR /tmp/awscli
+  mv $INSTALL_DIR/* /tmp/awscli
 fi
 
 echo "-----> Installing AWS CLI"
