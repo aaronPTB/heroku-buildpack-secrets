@@ -68,14 +68,14 @@ chmod +x $BUILD_DIR/jq
 
 echo "-----> Fetching Secrets"
 
-ls $BUILD_DIR
+ls -al $BUILD_DIR
 ## Fetch all secrets
-SECRETS=$($BUILD_DIR/aws secretsmanager list-secrets | $BUILD_DIR/jq -r ".SecretList[].Name")
+SECRETS=$($BUILD_DIR/.awscli/bin/aws secretsmanager list-secrets | $BUILD_DIR/jq -r ".SecretList[].Name")
 
 ## Get individual secrets
 for secret in $SECRETS
 do
-  parsed=$($BUILD_DIR/aws secretsmanager get-secret-value --secret-id "$secret" --query SecretString --output text | $BUILD_DIR/jq -r 'to_entries[] | "export \(.key)=\(.value)"') &&
+  parsed=$($BUILD_DIR/.awscli/bin/aws secretsmanager get-secret-value --secret-id "$secret" --query SecretString --output text | $BUILD_DIR/jq -r 'to_entries[] | "export \(.key)=\(.value)"') &&
   echo $parsed >> $BUILD_DIR/.profile.d/secrets.sh &
 done
 
