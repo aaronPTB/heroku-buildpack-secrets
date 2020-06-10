@@ -83,7 +83,7 @@ do
   {
     parsed=$($BUILD_DIR/.awscli/bin/python $BUILD_DIR/.awscli/bin/aws secretsmanager get-secret-value --secret-id "$secret" --query SecretString --output text | $BUILD_DIR/jq -r 'to_entries[] | "export \(.key)=\(.value)"')
     echo $parsed >> $BUILD_DIR/.profile.d/secrets.sh
-  } &
+  }
 done
 
 echo "-----> Cleaning up AWS CLI"
