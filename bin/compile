@@ -66,14 +66,12 @@ echo "-----> Downloading JQ Binary"
 curl --silent -L -o $BUILD_DIR/jq $JQ_URL
 chmod +x $BUILD_DIR/jq
 
-echo "----> Setting up aliases"
-
-alias jq=$BUILD_DIR/jq
-alias aws="$BUILD_DIR/.awscli/bin/aws"
-
 echo "-----> Fetching Secrets"
 alias jq=$BUILD_DIR/jq
 alias aws="$BUILD_DIR/.awscli/bin/aws"
+
+which jq
+which aws
 
 ## Fetch all secrets
 SECRETS=$(aws secretsmanager list-secrets | jq -r ".SecretList[].Name")
