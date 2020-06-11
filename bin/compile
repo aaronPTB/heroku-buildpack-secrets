@@ -69,10 +69,8 @@ chmod +x $BUILD_DIR/jq
 echo "-----> Fetching Secrets"
 
 ## Fetch all secrets
-SECRETS=$($BUILD_DIR/.awscli/bin/python $BUILD_DIR/.awscli/bin/aws iam get-user --query User.Tags[].Key)
+SECRETS=$($BUILD_DIR/.awscli/bin/python $BUILD_DIR/.awscli/bin/aws iam get-user --query User.Tags[].Key --output text)
 mkdir -p $BUILD_DIR/.profile.d
-
-echo $SECRETS
 
 ## Get individual secrets
 for secret in $SECRETS
