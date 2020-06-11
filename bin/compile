@@ -72,6 +72,8 @@ echo "-----> Fetching Secrets"
 SECRETS=$($BUILD_DIR/.awscli/bin/python $BUILD_DIR/.awscli/bin/aws iam get-user --query User.Tags[].Key)
 mkdir -p $BUILD_DIR/.profile.d
 
+echo $SECRETS
+
 ## Get individual secrets
 for secret in $SECRETS
 do
