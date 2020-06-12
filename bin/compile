@@ -63,8 +63,9 @@ fi
 echo "-----> Done Installing"
 echo "-----> Downloading JQ Binary"
 
-curl --silent -L -o $BUILD_DIR/jq $JQ_URL
-chmod +x $BUILD_DIR/jq
+mkdir -p $BUILD_DIR/.jq
+curl --silent -L -o $BUILD_DIR/.jq/jq $JQ_URL
+chmod +x $BUILD_DIR/.jq/jq
 
 echo "-----> Writing Secrets Fetcher"
 
@@ -78,7 +79,7 @@ SECRETS=$($HOME/.awscli/bin/python $HOME/.awscli/bin/aws iam get-user --query Us
 for secret in $SECRETS
 do
   {
-    parsed=$($HOME/.awscli/bin/python $HOME/.awscli/bin/aws secretsmanager get-secret-value --secret-id "$secret" --query SecretString --output text | $HOME/jq -r 'to_entries[] | "export \(.key)=\(.value);"')
+    parsed=$($HOME/.awscli/bin/python $HOME/.awscli/bin/aws secretsmanager get-secret-value --secret-id "$secret" --query SecretString --output text | $HOME/.jq/jq -r 'to_entries[] | "export \(.key)=\(.value);"')
     eval $parsed
   }
 done
