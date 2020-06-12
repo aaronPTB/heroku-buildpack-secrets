@@ -66,20 +66,24 @@ echo "-----> Downloading JQ Binary"
 curl --silent -L -o $BUILD_DIR/jq $JQ_URL
 chmod +x $BUILD_DIR/jq
 
-echo "-----> Fetching Secrets"
+echo "-----> Writing Secrets Fetcher"
 
-## Fetch all secrets
-SECRETS=$($BUILD_DIR/.awscli/bin/python $BUILD_DIR/.awscli/bin/aws iam get-user --query User.Tags[].Key --output text)
 mkdir -p $BUILD_DIR/.profile.d
+
+cat > "$BUILD_DIR/.profile.d/awscli.sh" <<'PROFILE'
+## Fetch all secrets
+SECRETS=$($HOME/.awscli/bin/python $HOME/.awscli/bin/aws iam get-user --query User.Tags[].Key --output text)
 
 ## Get individual secrets
 for secret in $SECRETS
 do
   {
-    parsed=$($BUILD_DIR/.awscli/bin/python $BUILD_DIR/.awscli/bin/aws secretsmanager get-secret-value --secret-id "$secret" --query SecretString --output text | $BUILD_DIR/jq -r 'to_entries[] | "export \(.key)=\(.value);"')
-    echo $parsed >> $BUILD_DIR/.profile.d/secrets.sh
+    parsed=$($HOME/.awscli/bin/python $HOME/.awscli/bin/aws secretsmanager get-secret-value --secret-id "$secret" --query SecretString --output text | $HOME/jq -r 'to_entries[] | "export \(.key)=\(.value);"')
+    eval $parsed
   }
 done
+PROFILE
+
 
 echo "-----> Cleaning up AWS CLI"
 # Restore the moved awscli dir, if it exists.
