@@ -80,7 +80,7 @@ for secret in $SECRETS
 do
   {
     parsed=$($HOME/.awscli/bin/python $HOME/.awscli/bin/aws secretsmanager get-secret-value --secret-id "$secret" --query SecretString --output text | $HOME/.jq/jq -r 'to_entries[] | "export \(.key)=\(.value);"')
-    $parsed
+    eval $parsed
   }
 done
 PROFILE
